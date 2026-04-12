@@ -41,6 +41,9 @@ function normalizeText(value: string | undefined): string {
   return (value ?? "").trim();
 }
 
+function getShiftLabel(shift: "M" | "V"): string {
+  return shift === "M" ? "Matutino" : "Vespertino";
+}
 function wrapTextToWidth(
   text: string,
   maxWidth: number,
@@ -461,7 +464,7 @@ export async function POST(request: Request) {
         ...(turma !== "Todas"
           ? {
               schoolClass: {
-                classCode: turma,
+                name: turma,
               },
             }
           : {}),
@@ -469,7 +472,7 @@ export async function POST(request: Request) {
       include: {
         schoolClass: {
           select: {
-            classCode: true,
+            name: true,
           },
         },
       },
@@ -481,8 +484,8 @@ export async function POST(request: Request) {
     const students: StudentRow[] = studentsData.map((student) => ({
       matricula: student.registration,
       nome: student.name,
-      turma: student.schoolClass.classCode,
-      turno: student.shift,
+      turma: student.schoolClass.name,
+      turno: getShiftLabel(student.shift),
     }));
 
     if (students.length === 0) {

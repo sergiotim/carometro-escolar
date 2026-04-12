@@ -34,7 +34,7 @@ export function useStudents() {
       const studentsData = payload.students || [];
       setStudents(studentsData);
 
-      const uniqueTurmas = Array.from(new Set(studentsData.map((s) => s.turma))).sort();
+      const uniqueTurmas = Array.from(new Set(studentsData.map((s) => s.turmaNome))).sort();
       setTurmas(["Todas", ...uniqueTurmas]);
     } catch (error: unknown) {
       console.error("Erro ao buscar estudantes:", getErrorMessage(error));

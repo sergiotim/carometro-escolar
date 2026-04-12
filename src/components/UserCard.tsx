@@ -3,6 +3,7 @@ import { User } from "lucide-react";
 import Image from "next/image";
 import { Student } from "@/types/student";
 import { Badge } from "@/components/ui/badge";
+import { useEffect, useState } from "react";
 
 interface UserCardProps {
   student: Student;
@@ -10,18 +11,27 @@ interface UserCardProps {
 }
 
 export function UserCard({ student, onClick }: UserCardProps) {
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [student.matricula, student.link_image]);
+
+  const showStudentPhoto = Boolean(student.link_image) && !imageError;
+
   return (
     <Card
       className="overflow-hidden border-slate-200 bg-white hover:border-[#0E4194]/30 transition-all hover:shadow-lg cursor-pointer group rounded-2xl"
       onClick={() => onClick(student)}
     >
       <div className="relative aspect-square w-full bg-slate-100 flex items-center justify-center">
-        {student.link_image ? (
+        {showStudentPhoto ? (
           <Image
-            src={student.link_image}
+            src={student.link_image!}
             alt={`Foto de ${student.nome}`}
             fill
             className="object-cover"
+            onError={() => setImageError(true)}
           />
         ) : (
           <div className="flex flex-col items-center text-slate-400 group-hover:text-[#0E4194] transition-colors">
@@ -42,7 +52,7 @@ export function UserCard({ student, onClick }: UserCardProps) {
         <div className="mt-2 flex justify-between items-center text-xs text-slate-500">
           <span className="font-mono">Mat: {student.matricula}</span>
           <Badge variant="secondary" className="bg-[#0E4194]/10 text-[#0E4194] hover:bg-[#0E4194]/20">
-            {student.turma}
+            {student.turmaNome}
           </Badge>
         </div>
       </CardContent>

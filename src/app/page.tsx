@@ -127,7 +127,7 @@ export default function CarometroEscolarPage() {
 
   // 7. Filtragem da Lista (Turma + Busca por Texto Apenas Nome)
   const filteredStudents = students.filter((s) => {
-    const matchTurma = selectedTurma === "Todas" || s.turma === selectedTurma;
+    const matchTurma = selectedTurma === "Todas" || s.turmaNome === selectedTurma;
     // O erro ocorria aqui. Agora filtramos APENAS pelo nome.
     const matchSearch = s.nome.toLowerCase().includes(searchTerm.toLowerCase());
     return matchTurma && matchSearch;

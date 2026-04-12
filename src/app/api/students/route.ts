@@ -4,6 +4,10 @@ import { getAuthenticatedUser } from "@/lib/auth/dal";
 import { prisma } from "@/lib/prisma";
 import { resolveStudentImageUrl } from "@/lib/r2";
 
+function getShiftLabel(shift: "M" | "V"): string {
+  return shift === "M" ? "Matutino" : "Vespertino";
+}
+
 export async function GET() {
   if (!process.env.DATABASE_URL) {
     return NextResponse.json(
@@ -37,9 +41,10 @@ export async function GET() {
         matricula: student.registration,
         nome: student.name,
         turma: student.schoolClass.classCode,
-        turno: student.shift,
+        turmaNome: student.schoolClass.name,
+        turno: getShiftLabel(student.shift),
         link_image: await resolveStudentImageUrl(student.registration),
-        userTakePhoto: student.userTakePhoto,
+        userTakePhoto: null,
       })),
     );
 

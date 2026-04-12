@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { Student } from "@/types/student";
+import { useEffect, useState } from "react";
 
 interface StudentDetailsModalProps {
   isOpen: boolean;
@@ -25,7 +26,15 @@ export function StudentDetailsModal({
   hasPreviousStudent,
   hasNextStudent,
 }: StudentDetailsModalProps) {
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [student?.matricula, student?.link_image]);
+
   if (!isOpen || !student) return null;
+
+  const showStudentPhoto = Boolean(student.link_image) && !imageError;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
@@ -55,13 +64,14 @@ export function StudentDetailsModal({
         <div className="bg-white rounded-3xl w-full overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-200">
         {/* Topo do Card com a Foto */}
         <div className="relative aspect-square w-full bg-slate-50 flex items-center justify-center border-b border-slate-100">
-          {student.link_image ? (
+          {showStudentPhoto ? (
             <Image
-              src={student.link_image}
+              src={student.link_image!}
               alt={student.nome}
               fill
               className="object-cover"
               unoptimized={true}
+              onError={() => setImageError(true)}
             />
           ) : (
             <div className="flex flex-col items-center text-slate-300">
@@ -105,7 +115,7 @@ export function StudentDetailsModal({
                   variant="secondary"
                   className="text-sm font-extrabold text-[#0E4194] bg-[#0E4194]/10 hover:bg-[#0E4194]/20 px-2 py-0.5 rounded-md border-0"
                 >
-                  {student.turma}
+                  {student.turmaNome}
                 </Badge>
               </div>
             </div>

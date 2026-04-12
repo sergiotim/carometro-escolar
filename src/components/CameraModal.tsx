@@ -169,13 +169,13 @@ export function CameraModal({
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black animate-in slide-in-from-bottom-4 duration-300">
-      <div className="flex items-center justify-between p-4 text-white bg-gradient-to-b from-black/80 to-transparent absolute top-0 w-full z-10">
+      <div className="flex items-center justify-between p-4 text-white bg-linear-to-b from-black/80 to-transparent absolute top-0 w-full z-10">
         <div>
           <p className="font-semibold line-clamp-1 drop-shadow-md">
             {student.nome}
           </p>
           <p className="text-xs text-gray-200 drop-shadow-md">
-            Turma: {student.turma}
+            Turma: {student.turmaNome}
           </p>
         </div>
         <Button
@@ -199,7 +199,7 @@ export function CameraModal({
         <canvas ref={canvasRef} className="hidden" />
       </div>
 
-      <div className="p-6 pb-12 bg-gradient-to-t from-black via-black/90 to-transparent flex justify-center absolute bottom-0 w-full">
+      <div className="p-6 pb-12 bg-linear-to-t from-black via-black/90 to-transparent flex justify-center absolute bottom-0 w-full">
         <Button
           onClick={captureAndUpload}
           disabled={isUploading}
