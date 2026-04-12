@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { Download, Loader2, LogOut, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -21,8 +20,7 @@ import { useStudents } from "@/hooks/useStudents";
 import { StudentDetailsModal } from "@/components/StudentDetailsModal";
 import { CameraModal } from "@/components/CameraModal";
 
-export default function IdentificaSesiPage() {
-  const supabase = createClient();
+export default function CarometroEscolarPage() {
   const router = useRouter();
 
   const { students, turmas, isLoading, errorMsg, updateStudentImage } = useStudents();
@@ -38,20 +36,33 @@ export default function IdentificaSesiPage() {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await fetch("/api/auth/logout", { method: "POST" });
     router.push("/auth/login");
+    router.refresh();
   };
 
   useEffect(() => {
     const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) setCurrentUser(user.email || "Usuário Desconhecido");
+      const response = await fetch("/api/auth/me", {
+        method: "GET",
+      });
+
+      if (!response.ok) {
+        router.replace("/auth/login");
+        return;
+      }
+
+      const payload = (await response.json()) as {
+        user: { email: string } | null;
+      };
+
+      if (payload.user?.email) {
+        setCurrentUser(payload.user.email);
+      }
     };
 
-    getUser();
-  }, [supabase]);
+    void getUser();
+  }, []);
 
   const openDetailsModal = (student: Student) => {
     setSelectedStudent(student);
@@ -99,7 +110,7 @@ export default function IdentificaSesiPage() {
       const anchor = document.createElement("a");
       const turmaLabel = selectedTurma === "Todas" ? "todas-as-turmas" : selectedTurma;
       anchor.href = objectUrl;
-      anchor.download = `identifica-sesi-${turmaLabel}-${new Date()
+      anchor.download = `carometro-escolar-${turmaLabel}-${new Date()
         .toISOString()
         .slice(0, 10)}.pdf`;
       document.body.appendChild(anchor);
@@ -152,7 +163,7 @@ export default function IdentificaSesiPage() {
                 src={"/logo.svg"}
                 width={240}
                 height={80}
-                alt="Logo Identifica SESI"
+                alt="Logo Carometro Escolar"
                 priority
               ></Image>
 
@@ -180,7 +191,7 @@ export default function IdentificaSesiPage() {
                     void handleExportPdf();
                   }}
                   disabled={isExportingPdf || filteredStudents.length === 0}
-                  className="text-slate-700 focus:bg-slate-100 focus:text-slate-900 data-[highlighted]:bg-slate-100 data-[highlighted]:text-slate-900"
+                  className="text-slate-700 focus:bg-slate-100 focus:text-slate-900"
                 >
                   {isExportingPdf ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -196,7 +207,7 @@ export default function IdentificaSesiPage() {
                 <DropdownMenuSeparator className="bg-slate-200" />
                 <DropdownMenuItem
                   onSelect={handleLogout}
-                  className="text-red-600 focus:bg-red-50 focus:text-red-700 data-[highlighted]:bg-red-50 data-[highlighted]:text-red-700"
+                  className="text-red-600 focus:bg-red-50 focus:text-red-700"
                 >
                   <LogOut className="h-4 w-4" />
                   <span>Sair</span>

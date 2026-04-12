@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Camera, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/client";
 import { Student } from "@/types/student";
 
 interface CameraModalProps {
@@ -27,7 +26,6 @@ export function CameraModal({
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const supabase = createClient();
 
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
@@ -97,35 +95,63 @@ export function CameraModal({
           return;
         }
 
-        const fileName = `${student.matricula}.jpg`;
-
         try {
-          const { error: uploadError } = await supabase.storage
-            .from("students_image")
-            .upload(fileName, blob, {
-              contentType: "image/jpeg",
-              upsert: true,
-            });
+          const uploadUrlResponse = await fetch(
+            `/api/students/${student.matricula}/photo-upload-url`,
+            {
+              method: "POST",
+            },
+          );
 
-          if (uploadError) throw uploadError;
+          if (!uploadUrlResponse.ok) {
+            throw new Error("Falha ao preparar upload.");
+          }
 
-          const { data: signedUrlData, error: signedUrlError } =
-            await supabase.storage
-              .from("students_image")
-              .createSignedUrl(fileName, 14000);
+          const { putUrl } = (await uploadUrlResponse.json()) as {
+            putUrl: string;
+            key: string;
+          };
 
-          if (signedUrlError) throw signedUrlError;
+          const uploadResponse = await fetch(putUrl, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "image/jpeg",
+            },
+            body: blob,
+          });
 
-          const imageUrl = `${signedUrlData.signedUrl}&t=${Date.now()}`;
+          if (!uploadResponse.ok) {
+            throw new Error("Falha ao enviar foto.");
+          }
 
-          const { error: updateError } = await supabase
-            .from("alunos")
-            .update({ userTakePhoto: currentUser })
-            .eq("matricula", student.matricula);
+          const completeResponse = await fetch(
+            `/api/students/${student.matricula}/photo-upload-complete`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ userTakePhoto: currentUser }),
+            },
+          );
 
-          if (updateError) throw updateError;
+          if (!completeResponse.ok) {
+            throw new Error("Falha ao finalizar upload.");
+          }
 
-          onUploadSuccess(student.matricula, imageUrl, currentUser);
+          const { imageUrl } = (await completeResponse.json()) as {
+            imageUrl: string | null;
+          };
+
+          const refreshedUrl = imageUrl
+            ? `${imageUrl}${imageUrl.includes("?") ? "&" : "?"}t=${Date.now()}`
+            : (student.link_image ?? "");
+
+          onUploadSuccess(
+            student.matricula,
+            refreshedUrl,
+            currentUser,
+          );
           onClose();
         } catch (error: unknown) {
           console.error("Erro no processo de upload:", error);

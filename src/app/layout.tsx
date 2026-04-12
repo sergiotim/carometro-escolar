@@ -9,8 +9,8 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "Identifica SESI",
-  description: "Plataforma de gestão e identificação fotográfica de estudantes do SESI.",
+  title: "Carometro Escolar",
+  description: "Plataforma de gestao e identificacao fotografica de estudantes.",
 };
 
 const geistSans = Geist({

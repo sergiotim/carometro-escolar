@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,7 +12,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AlertCircle, Loader2, Lock, Mail } from "lucide-react";
@@ -37,36 +35,27 @@ export function LoginForm({
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
 
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
       });
 
-      if (signInError) {
-        // Personalizando mensagens de erro comuns do Supabase
-        if (signInError.message.includes("Invalid login credentials")) {
-          throw new Error("E-mail ou senha incorretos.");
-        }
-        throw signInError;
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: string }
+          | null;
+        throw new Error(payload?.error || "E-mail ou senha incorretos.");
       }
 
-      // -- NOVA LÓGICA DE VERIFICAÇÃO DE SENHA --
-      // Busca os dados completos do utilizador recém-logado
-      const { data: userData } = await supabase.auth.getUser();
-      const metadata = userData.user?.user_metadata;
-
-      // Verifica se a etiqueta existe e é verdadeira
-      if (metadata?.precisa_trocar_senha === true) {
-        router.push("/auth/update-password");
-      } else {
-        // Redireciona para a home caso não precise trocar a senha
-        router.push("/");
-      }
+      router.push("/");
+      router.refresh();
     } catch (error: unknown) {
       setError(getErrorMessage(error));
     } finally {
@@ -127,12 +116,6 @@ export function LoginForm({
                   >
                     Senha
                   </Label>
-                  <Link
-                    href="/auth/forgot-password"
-                    className="inline-block text-xs font-medium text-[#0E4194] hover:text-[#0E4194]/80 underline-offset-4 hover:underline"
-                  >
-                    Esqueceu a senha?
-                  </Link>
                 </div>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />

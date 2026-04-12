@@ -1,4 +1,6 @@
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedUser } from "@/lib/auth/dal";
+import { prisma } from "@/lib/prisma";
+import { getSignedGetImageUrl, getStudentImageKey } from "@/lib/r2";
 import {
   PDFDocument,
   PDFFont,
@@ -126,18 +128,24 @@ async function buildStudentsPdf(
     console.warn("Logo nao encontrada para o PDF:", error);
   }
 
-  const imagePaths = students.map((student) => `${student.matricula}.jpg`);
-  const supabase = await createClient();
-  const { data: signedUrls } = await supabase.storage
-    .from("students_image")
-    .createSignedUrls(imagePaths, 1200);
+  const signedUrlList = await Promise.all(
+    students.map(async (student) => {
+      const path = getStudentImageKey(student.matricula);
+      try {
+        const signedUrl = await getSignedGetImageUrl(path);
+        return { path, signedUrl, error: null as unknown };
+      } catch (error) {
+        return { path, signedUrl: null, error };
+      }
+    }),
+  );
 
   const imageMap = new Map<string, Uint8Array>();
 
   await Promise.all(
     students.map(async (student) => {
       const path = `${student.matricula}.jpg`;
-      const signedInfo = signedUrls?.find((item) => item.path === path);
+      const signedInfo = signedUrlList.find((item) => item.path === path);
 
       if (!signedInfo || signedInfo.error || !signedInfo.signedUrl) {
         return;
@@ -431,43 +439,51 @@ async function buildStudentsPdf(
 
 export async function POST(request: Request) {
   try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      return NextResponse.json({ error: "Nao autorizado." }, { status: 401 });
+    }
+
     const payload = (await request.json()) as ExportPayload;
     const turma = normalizeText(payload.selectedTurma) || "Todas";
     const searchTerm = normalizeText(payload.searchTerm);
 
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+    const studentsData = await prisma.student.findMany({
+      where: {
+        ...(searchTerm
+          ? {
+              name: {
+                contains: searchTerm,
+                mode: "insensitive",
+              },
+            }
+          : {}),
+        ...(turma !== "Todas"
+          ? {
+              schoolClass: {
+                classCode: turma,
+              },
+            }
+          : {}),
+      },
+      include: {
+        schoolClass: {
+          select: {
+            classCode: true,
+          },
+        },
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
 
-    if (userError || !user) {
-      return NextResponse.json({ error: "Nao autorizado." }, { status: 401 });
-    }
-
-    let query = supabase
-      .from("alunos")
-      .select("matricula, nome, turma, turno")
-      .order("nome");
-
-    if (turma !== "Todas") {
-      query = query.eq("turma", turma);
-    }
-
-    if (searchTerm) {
-      query = query.ilike("nome", `%${searchTerm}%`);
-    }
-
-    const { data: studentsData, error } = await query;
-
-    if (error) {
-      return NextResponse.json(
-        { error: "Falha ao buscar estudantes." },
-        { status: 500 },
-      );
-    }
-
-    const students = (studentsData || []) as StudentRow[];
+    const students: StudentRow[] = studentsData.map((student) => ({
+      matricula: student.registration,
+      nome: student.name,
+      turma: student.schoolClass.classCode,
+      turno: student.shift,
+    }));
 
     if (students.length === 0) {
       return NextResponse.json(
@@ -490,7 +506,7 @@ export async function POST(request: Request) {
     return new NextResponse(Buffer.from(pdfBytes), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="identifica-sesi-${turmaPart}-${datePart}.pdf"`,
+        "Content-Disposition": `attachment; filename="carometro-escolar-${turmaPart}-${datePart}.pdf"`,
       },
     });
   } catch (error) {

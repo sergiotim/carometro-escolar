@@ -1,0 +1,7 @@
+<svg width="320" height="84" viewBox="0 0 320 84" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="1" y="1" width="318" height="82" rx="18" fill="white" stroke="#D6DFE6" stroke-width="2"/>
+  <circle cx="45" cy="42" r="20" fill="#0E4194"/>
+  <path d="M35 42.5L42 49L55 35" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="78" y="37" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#0E4194">Carometro</text>
+  <text x="78" y="58" font-family="Arial, sans-serif" font-size="20" font-weight="600" fill="#68B42D">Escolar</text>
+</svg>
