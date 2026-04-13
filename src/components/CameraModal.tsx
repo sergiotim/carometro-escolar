@@ -8,6 +8,7 @@ interface CameraModalProps {
   student: Student | null;
   currentUser: string | null;
   onClose: () => void;
+  onUploadCommitted: () => Promise<void>;
   onUploadSuccess: (
     matricula: string,
     imageUrl: string,
@@ -20,6 +21,7 @@ export function CameraModal({
   student,
   currentUser,
   onClose,
+  onUploadCommitted,
   onUploadSuccess,
 }: CameraModalProps) {
   const [isUploading, setIsUploading] = useState(false);
@@ -63,6 +65,24 @@ export function CameraModal({
     return () => stopCamera();
   }, [isOpen, startCamera, stopCamera]);
 
+  const addCacheBuster = (url: string): string => {
+    try {
+      const parsedUrl = new URL(url);
+      const isSignedUrl =
+        parsedUrl.searchParams.has("X-Amz-Signature") ||
+        parsedUrl.searchParams.has("X-Amz-Algorithm");
+
+      if (isSignedUrl) {
+        return url;
+      }
+
+      parsedUrl.searchParams.set("t", `${Date.now()}`);
+      return parsedUrl.toString();
+    } catch {
+      return url;
+    }
+  };
+
   const captureAndUpload = async () => {
     if (!videoRef.current || !canvasRef.current || !student) return;
 
@@ -96,62 +116,43 @@ export function CameraModal({
         }
 
         try {
-          const uploadUrlResponse = await fetch(
-            `/api/students/${student.matricula}/photo-upload-url`,
+          const localPreviewUrl = URL.createObjectURL(blob);
+          const formData = new FormData();
+          formData.append("image", blob, `${student.matricula}.jpg`);
+
+          const uploadResponse = await fetch(
+            `/api/students/${student.matricula}/photo-upload`,
             {
               method: "POST",
+              body: formData,
             },
           );
-
-          if (!uploadUrlResponse.ok) {
-            throw new Error("Falha ao preparar upload.");
-          }
-
-          const { putUrl } = (await uploadUrlResponse.json()) as {
-            putUrl: string;
-            key: string;
-          };
-
-          const uploadResponse = await fetch(putUrl, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "image/jpeg",
-            },
-            body: blob,
-          });
 
           if (!uploadResponse.ok) {
-            throw new Error("Falha ao enviar foto.");
+            throw new Error("Falha ao salvar foto.");
           }
 
-          const completeResponse = await fetch(
-            `/api/students/${student.matricula}/photo-upload-complete`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ userTakePhoto: currentUser }),
-            },
-          );
-
-          if (!completeResponse.ok) {
-            throw new Error("Falha ao finalizar upload.");
-          }
-
-          const { imageUrl } = (await completeResponse.json()) as {
+          const { imageUrl } = (await uploadResponse.json()) as {
             imageUrl: string | null;
           };
 
-          const refreshedUrl = imageUrl
-            ? `${imageUrl}${imageUrl.includes("?") ? "&" : "?"}t=${Date.now()}`
+          const persistedUrl = imageUrl
+            ? addCacheBuster(imageUrl)
             : (student.link_image ?? "");
 
           onUploadSuccess(
             student.matricula,
-            refreshedUrl,
+            localPreviewUrl,
             currentUser,
           );
+
+          if (persistedUrl) {
+            onUploadSuccess(student.matricula, persistedUrl, currentUser);
+          }
+
+          await onUploadCommitted();
+          URL.revokeObjectURL(localPreviewUrl);
+
           onClose();
         } catch (error: unknown) {
           console.error("Erro no processo de upload:", error);

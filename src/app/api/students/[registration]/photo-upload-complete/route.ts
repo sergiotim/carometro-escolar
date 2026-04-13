@@ -2,15 +2,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getAuthenticatedUser } from "@/lib/auth/dal";
-import { prisma } from "@/lib/prisma";
 import { resolveStudentImageUrl } from "@/lib/r2";
 
 const paramsSchema = z.object({
   registration: z.string().min(1),
-});
-
-const bodySchema = z.object({
-  userTakePhoto: z.string().email().nullable(),
 });
 
 export async function POST(
@@ -29,21 +24,9 @@ export async function POST(
     return NextResponse.json({ error: "Matricula invalida." }, { status: 400 });
   }
 
-  const body = await request.json().catch(() => null);
-  const parsedBody = bodySchema.safeParse(body);
-
-  if (!parsedBody.success) {
-    return NextResponse.json({ error: "Dados invalidos." }, { status: 400 });
-  }
+  await request.json().catch(() => null);
 
   const registration = parsedParams.data.registration;
-
-  await prisma.student.update({
-    where: { registration },
-    data: {
-      userTakePhoto: parsedBody.data.userTakePhoto,
-    },
-  });
 
   const imageUrl = await resolveStudentImageUrl(registration);
 

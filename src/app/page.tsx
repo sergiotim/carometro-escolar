@@ -23,7 +23,7 @@ import { CameraModal } from "@/components/CameraModal";
 export default function CarometroEscolarPage() {
   const router = useRouter();
 
-  const { students, turmas, isLoading, errorMsg, updateStudentImage } = useStudents();
+  const { students, turmas, isLoading, errorMsg, updateStudentImage, refreshStudents } = useStudents();
   
   const [selectedTurma, setSelectedTurma] = useState<string>("Todas");
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -255,6 +255,7 @@ export default function CarometroEscolarPage() {
         student={selectedStudent}
         currentUser={currentUser}
         onClose={closeCamera}
+        onUploadCommitted={refreshStudents}
         onUploadSuccess={updateStudentImage}
       />
     </main>

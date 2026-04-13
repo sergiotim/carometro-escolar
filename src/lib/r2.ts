@@ -71,6 +71,21 @@ export async function getSignedPutImageUrl(key: string): Promise<string> {
   );
 }
 
+export async function uploadStudentImage(
+  registration: string,
+  imageBuffer: Uint8Array,
+): Promise<void> {
+  const client = getR2Client();
+  await client.send(
+    new PutObjectCommand({
+      Bucket: getR2BucketName(),
+      Key: getStudentImageKey(registration),
+      ContentType: "image/jpeg",
+      Body: imageBuffer,
+    }),
+  );
+}
+
 export async function resolveStudentImageUrl(
   registration: string,
 ): Promise<string | null> {
