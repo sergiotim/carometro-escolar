@@ -167,7 +167,7 @@ export default function CarometroEscolarPage() {
                 priority
               ></Image>
 
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-500 mt-3">
                 Gestão de fotos de estudantes
               </p>
             </div>
