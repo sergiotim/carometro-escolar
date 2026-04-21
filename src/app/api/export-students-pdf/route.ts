@@ -167,6 +167,14 @@ async function buildStudentsPdf(
           return;
         }
 
+        // SEC-002: Validate file size (max 5MB) to prevent DoS
+        const contentLength = parseInt(imageResponse.headers.get("content-length") || "0");
+        const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+        if (contentLength > MAX_IMAGE_SIZE) {
+          console.warn(`[Security] Image exceeds max size (${contentLength} bytes). Skipping.`);
+          return;
+        }
+
         const arrayBuffer = await imageResponse.arrayBuffer();
         imageMap.set(student.matricula, new Uint8Array(arrayBuffer));
       } catch {

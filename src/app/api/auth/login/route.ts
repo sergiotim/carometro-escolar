@@ -3,11 +3,12 @@ import { z } from "zod";
 
 import { verifyPassword } from "@/lib/auth/password";
 import { createSession } from "@/lib/auth/session";
+import { checkLoginRateLimit } from "@/lib/middleware/rate-limit";
 import { prisma } from "@/lib/prisma";
 
 const loginSchema = z.object({
   email: z.email().trim(),
-  password: z.string().min(1),
+  password: z.string().min(1).max(256),
 });
 
 export async function POST(request: Request) {
@@ -28,6 +29,20 @@ export async function POST(request: Request) {
   const { email, password } = parsed.data;
 
   try {
+    // SEC-004: Rate limit login attempts to prevent brute force
+    const rateLimitCheck = checkLoginRateLimit(email);
+    if (!rateLimitCheck.allowed) {
+      return NextResponse.json(
+        { error: "Muitas tentativas de login. Tente novamente mais tarde." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": rateLimitCheck.retryAfter?.toString() || "900",
+          },
+        }
+      );
+    }
+
     const user = await prisma.user.findUnique({
       where: { email },
       select: {

@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 import { getAuthenticatedUser } from "@/lib/auth/dal";
+import { registrationSchema } from "@/lib/validation/registration";
 import { DEMO_UPLOAD_BLOCKED_MESSAGE } from "@/lib/demo";
-
-const paramsSchema = z.object({
-  registration: z.string().min(1),
-});
 
 export async function POST(
   _request: Request,
@@ -17,7 +13,7 @@ export async function POST(
   }
 
   const params = await context.params;
-  const parsed = paramsSchema.safeParse(params);
+  const parsed = registrationSchema.safeParse(params);
 
   if (!parsed.success) {
     return NextResponse.json({ error: "Matricula invalida." }, { status: 400 });
