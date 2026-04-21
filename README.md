@@ -1,52 +1,49 @@
-# Carometro Escolar (DEMO)
+# Carometro Escolar
 
-Aplicacao de demonstracao para consulta de estudantes e captura visual local de fotos.
+Plataforma web para identificacao rapida de estudantes com foco em agilidade operacional, padronizacao de cadastro visual e apoio a rotina escolar.
 
-## Regra principal do projeto
+## O que e
 
-Este projeto e somente DEMO.
+O Carometro Escolar e um sistema digital de consulta de alunos com experiencia visual, busca rapida e fluxo de foto integrado para facilitar a identificacao em ambientes educacionais.
 
-- Nenhuma foto e enviada para R2.
-- Nenhuma foto e persistida no banco.
-- A imagem capturada fica apenas no navegador e pode desaparecer ao recarregar a pagina.
+## Para que serve
 
-As rotas de upload da API retornam bloqueio permanente para evitar qualquer escrita real em storage ou banco, mesmo com chamada manual.
+O projeto foi desenhado para reduzir tempo em tarefas operacionais do dia a dia da escola.
 
-## Politica de dados
+- Consultar estudantes por registro de forma imediata.
+- Apoiar equipes em processos de conferencia e atendimento.
+- Centralizar dados e imagem em uma interface unica.
+- Melhorar organizacao e confiabilidade das informacoes.
 
-Este repositorio nao utiliza seed automatica.
+## Para quem e
 
-- Nao existe `prisma db seed` configurado.
-- Nao existe script de seed no fluxo oficial de desenvolvimento/deploy.
-- O ambiente demo utiliza credenciais publicas para facilitar o acesso.
+Ideal para instituicoes de ensino e equipes que precisam de controle visual e consulta eficiente de estudantes.
 
-## Requisitos
+- Escolas de educacao basica e tecnica.
+- Coordenacao pedagogica e secretaria.
+- Equipes administrativas e de atendimento.
+- Projetos educacionais que exigem escalabilidade e rastreabilidade.
 
-- Node.js 20+
-- NPM
-- Banco configurado para leitura da lista de estudantes
+## Diferenciais do produto
 
-## Variaveis de ambiente
+- Interface moderna e objetiva para uso diario.
+- Fluxo pensado para velocidade, sem atrito para o usuario.
+- Base tecnica preparada para crescimento do projeto.
+- Arquitetura pronta para integrar autenticacao, armazenamento e exportacao de dados.
 
-Configure `.env.local` para sessao, banco e chaves ja utilizadas pelo projeto.
+## Ferramentas e tecnologias
 
-Importante: o comportamento demo nao depende de flag em `.env`; ele e permanente por regra de produto.
+O Carometro Escolar foi construido com stack moderna para entregar performance, seguranca e manutencao eficiente.
 
-## Fluxo de foto em DEMO
+- Next.js 16 + React 19 (frontend e rotas de API).
+- TypeScript (tipagem e confiabilidade).
+- Prisma ORM + Neon Postgres (camada de dados).
+- Tailwind CSS 4 + Radix UI (interface e componentes reutilizaveis).
+- Zod (validacao de dados).
+- JOSE + Argon2 (autenticacao e seguranca).
+- AWS SDK (integracao com storage compativel S3).
+- PDF-Lib (geracao de PDF para exportacoes).
 
-1. Usuario abre a camera e captura uma foto.
-2. A foto e exibida localmente na interface.
-3. Nao ocorre requisicao de upload persistente.
-4. Ao atualizar a pagina, o estado local e perdido.
+## Valor para a instituicao
 
-## Deploy aberto ao publico
-
-Para deploy publico, nao ha etapa adicional para bloquear upload: o bloqueio ja faz parte do codigo.
-
-Checklist recomendado:
-
-1. Validar login e carregamento da lista de estudantes.
-2. Validar captura de foto local (sem persistencia apos refresh).
-3. Validar que endpoints de upload retornam bloqueio (403).
-4. Validar `npm run lint` sem erros.
-5. Validar `npm run build` sem erros.
+Com o Carometro Escolar, a escola ganha mais eficiencia operacional, melhor experiencia para equipes internas e uma base digital pronta para evoluir com novas necessidades academicas e administrativas.
