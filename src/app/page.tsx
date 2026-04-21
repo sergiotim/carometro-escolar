@@ -23,7 +23,7 @@ import { CameraModal } from "@/components/CameraModal";
 export default function CarometroEscolarPage() {
   const router = useRouter();
 
-  const { students, turmas, isLoading, errorMsg, updateStudentImage, refreshStudents } = useStudents();
+  const { students, turmas, isLoading, errorMsg, updateStudentImage } = useStudents();
   
   const [selectedTurma, setSelectedTurma] = useState<string>("Todas");
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -32,8 +32,6 @@ export default function CarometroEscolarPage() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
-
-  const [currentUser, setCurrentUser] = useState<string | null>(null);
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -56,13 +54,13 @@ export default function CarometroEscolarPage() {
         user: { email: string } | null;
       };
 
-      if (payload.user?.email) {
-        setCurrentUser(payload.user.email);
+      if (!payload.user?.email) {
+        router.replace("/auth/login");
       }
     };
 
     void getUser();
-  }, []);
+  }, [router]);
 
   const openDetailsModal = (student: Student) => {
     setSelectedStudent(student);
@@ -253,9 +251,7 @@ export default function CarometroEscolarPage() {
       <CameraModal
         isOpen={isCameraOpen}
         student={selectedStudent}
-        currentUser={currentUser}
         onClose={closeCamera}
-        onUploadCommitted={refreshStudents}
         onUploadSuccess={updateStudentImage}
       />
     </main>

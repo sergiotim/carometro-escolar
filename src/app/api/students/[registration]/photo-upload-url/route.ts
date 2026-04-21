@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getAuthenticatedUser } from "@/lib/auth/dal";
-import { getSignedPutImageUrl, getStudentImageKey } from "@/lib/r2";
+import { DEMO_UPLOAD_BLOCKED_MESSAGE } from "@/lib/demo";
 
 const paramsSchema = z.object({
   registration: z.string().min(1),
@@ -12,8 +12,7 @@ export async function POST(
   _request: Request,
   context: { params: Promise<{ registration: string }> },
 ) {
-  const user = await getAuthenticatedUser();
-  if (!user) {
+  if (!(await getAuthenticatedUser())) {
     return NextResponse.json({ error: "Nao autorizado." }, { status: 401 });
   }
 
@@ -24,15 +23,12 @@ export async function POST(
     return NextResponse.json({ error: "Matricula invalida." }, { status: 400 });
   }
 
-  const key = getStudentImageKey(parsed.data.registration);
-
-  try {
-    const putUrl = await getSignedPutImageUrl(key);
-    return NextResponse.json({ putUrl, key });
-  } catch {
-    return NextResponse.json(
-      { error: "Falha ao preparar upload." },
-      { status: 500 },
-    );
-  }
+  return NextResponse.json(
+    {
+      error: DEMO_UPLOAD_BLOCKED_MESSAGE,
+      registration: parsed.data.registration,
+      demoMode: true,
+    },
+    { status: 403 },
+  );
 }

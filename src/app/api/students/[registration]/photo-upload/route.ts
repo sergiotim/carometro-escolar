@@ -2,19 +2,17 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getAuthenticatedUser } from "@/lib/auth/dal";
-import { prisma } from "@/lib/prisma";
-import { resolveStudentImageUrl, uploadStudentImage } from "@/lib/r2";
+import { DEMO_UPLOAD_BLOCKED_MESSAGE } from "@/lib/demo";
 
 const paramsSchema = z.object({
   registration: z.string().min(1),
 });
 
 export async function POST(
-  request: Request,
+  _request: Request,
   context: { params: Promise<{ registration: string }> },
 ) {
-  const user = await getAuthenticatedUser();
-  if (!user) {
+  if (!(await getAuthenticatedUser())) {
     return NextResponse.json({ error: "Nao autorizado." }, { status: 401 });
   }
 
@@ -25,39 +23,14 @@ export async function POST(
     return NextResponse.json({ error: "Matricula invalida." }, { status: 400 });
   }
 
-  const formData = await request.formData().catch(() => null);
-  if (!formData) {
-    return NextResponse.json({ error: "Dados invalidos." }, { status: 400 });
-  }
-
-  const image = formData.get("image");
-  if (!(image instanceof File) || image.size === 0) {
-    return NextResponse.json(
-      { error: "Imagem obrigatoria." },
-      { status: 400 },
-    );
-  }
-
   const registration = parsedParams.data.registration;
 
-  try {
-    const imageArrayBuffer = await image.arrayBuffer();
-    await uploadStudentImage(registration, new Uint8Array(imageArrayBuffer));
-
-    await prisma.$executeRaw`
-      UPDATE "student"
-      SET "user_take_photo" = ${user.email}
-      WHERE "registration" = ${registration}
-    `;
-
-    const imageUrl = await resolveStudentImageUrl(registration);
-
-    return NextResponse.json({ imageUrl, registration });
-  } catch (error) {
-    console.error("Erro ao salvar foto:", error);
-    return NextResponse.json(
-      { error: "Falha ao salvar foto." },
-      { status: 500 },
-    );
-  }
+  return NextResponse.json(
+    {
+      error: DEMO_UPLOAD_BLOCKED_MESSAGE,
+      registration,
+      demoMode: true,
+    },
+    { status: 403 },
+  );
 }

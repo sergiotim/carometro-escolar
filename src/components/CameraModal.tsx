@@ -2,13 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Camera, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Student } from "@/types/student";
+import { DEMO_MODE } from "@/lib/demo";
 
 interface CameraModalProps {
   isOpen: boolean;
   student: Student | null;
-  currentUser: string | null;
   onClose: () => void;
-  onUploadCommitted: () => Promise<void>;
   onUploadSuccess: (
     matricula: string,
     imageUrl: string,
@@ -19,9 +18,7 @@ interface CameraModalProps {
 export function CameraModal({
   isOpen,
   student,
-  currentUser,
   onClose,
-  onUploadCommitted,
   onUploadSuccess,
 }: CameraModalProps) {
   const [isUploading, setIsUploading] = useState(false);
@@ -65,24 +62,6 @@ export function CameraModal({
     return () => stopCamera();
   }, [isOpen, startCamera, stopCamera]);
 
-  const addCacheBuster = (url: string): string => {
-    try {
-      const parsedUrl = new URL(url);
-      const isSignedUrl =
-        parsedUrl.searchParams.has("X-Amz-Signature") ||
-        parsedUrl.searchParams.has("X-Amz-Algorithm");
-
-      if (isSignedUrl) {
-        return url;
-      }
-
-      parsedUrl.searchParams.set("t", `${Date.now()}`);
-      return parsedUrl.toString();
-    } catch {
-      return url;
-    }
-  };
-
   const captureAndUpload = async () => {
     if (!videoRef.current || !canvasRef.current || !student) return;
 
@@ -103,7 +82,10 @@ export function CameraModal({
     canvas.height = newHeight;
 
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) {
+      setIsUploading(false);
+      return;
+    }
 
     ctx.drawImage(video, 0, 0, newWidth, newHeight);
 
@@ -117,46 +99,12 @@ export function CameraModal({
 
         try {
           const localPreviewUrl = URL.createObjectURL(blob);
-          const formData = new FormData();
-          formData.append("image", blob, `${student.matricula}.jpg`);
-
-          const uploadResponse = await fetch(
-            `/api/students/${student.matricula}/photo-upload`,
-            {
-              method: "POST",
-              body: formData,
-            },
-          );
-
-          if (!uploadResponse.ok) {
-            throw new Error("Falha ao salvar foto.");
-          }
-
-          const { imageUrl } = (await uploadResponse.json()) as {
-            imageUrl: string | null;
-          };
-
-          const persistedUrl = imageUrl
-            ? addCacheBuster(imageUrl)
-            : (student.link_image ?? "");
-
-          onUploadSuccess(
-            student.matricula,
-            localPreviewUrl,
-            currentUser,
-          );
-
-          if (persistedUrl) {
-            onUploadSuccess(student.matricula, persistedUrl, currentUser);
-          }
-
-          await onUploadCommitted();
-          URL.revokeObjectURL(localPreviewUrl);
+          onUploadSuccess(student.matricula, localPreviewUrl, "demo-local");
 
           onClose();
         } catch (error: unknown) {
           console.error("Erro no processo de upload:", error);
-          alert("Falha ao salvar a foto. Tente novamente.");
+          alert("Falha ao capturar a foto no modo demo. Tente novamente.");
         } finally {
           setIsUploading(false);
         }
@@ -198,6 +146,16 @@ export function CameraModal({
           className="h-full w-full object-cover"
         />
         <canvas ref={canvasRef} className="hidden" />
+
+        {DEMO_MODE && (
+          <div className="absolute bottom-28 left-4 right-4 rounded-xl border border-amber-300/50 bg-amber-50/95 px-4 py-3 text-xs text-amber-900 shadow-lg backdrop-blur-sm">
+            <p className="font-semibold">Modo DEMO ativo</p>
+            <p>
+              A foto fica apenas neste navegador e nao sera enviada para o
+              banco ou para o storage.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="p-6 pb-12 bg-linear-to-t from-black via-black/90 to-transparent flex justify-center absolute bottom-0 w-full">

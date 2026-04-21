@@ -3,7 +3,7 @@ import { User } from "lucide-react";
 import Image from "next/image";
 import { Student } from "@/types/student";
 import { Badge } from "@/components/ui/badge";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface UserCardProps {
   student: Student;
@@ -13,14 +13,11 @@ interface UserCardProps {
 export function UserCard({ student, onClick }: UserCardProps) {
   const [imageError, setImageError] = useState(false);
 
-  useEffect(() => {
-    setImageError(false);
-  }, [student.matricula, student.link_image]);
-
   const showStudentPhoto = Boolean(student.link_image) && !imageError;
 
   return (
     <Card
+      key={`${student.matricula}-${student.link_image ?? "none"}`}
       className="overflow-hidden border-slate-200 bg-white hover:border-[#0E4194]/30 transition-all hover:shadow-lg cursor-pointer group rounded-2xl"
       onClick={() => onClick(student)}
     >

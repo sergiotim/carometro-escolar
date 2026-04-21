@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { Student } from "@/types/student";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface StudentDetailsModalProps {
   isOpen: boolean;
@@ -28,16 +28,15 @@ export function StudentDetailsModal({
 }: StudentDetailsModalProps) {
   const [imageError, setImageError] = useState(false);
 
-  useEffect(() => {
-    setImageError(false);
-  }, [student?.matricula, student?.link_image]);
-
   if (!isOpen || !student) return null;
 
   const showStudentPhoto = Boolean(student.link_image) && !imageError;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+    <div
+      key={`${student.matricula}-${student.link_image ?? "none"}`}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+    >
       <div className="relative w-full max-w-sm">
         <Button
           variant="ghost"
@@ -132,17 +131,18 @@ export function StudentDetailsModal({
               </div>
               <div className="flex flex-col items-end">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  Foto capturada por
+                  Origem da foto
                 </span>
                 <span className="text-xs font-medium text-slate-600 flex items-center gap-1 mt-0.5">
                   {student.userTakePhoto ? (
                     <>
                       <User className="h-3 w-3" />
-                      {/* Mostra apenas a parte do email antes do @ para não quebrar o layout */}
-                      {student.userTakePhoto.split("@")[0]}
+                      {student.userTakePhoto === "demo-local"
+                        ? "Demo local (nao salvo)"
+                        : student.userTakePhoto.split("@")[0]}
                     </>
                   ) : (
-                    "Nenhuma foto"
+                    "Nenhuma foto salva"
                   )}
                 </span>
               </div>
@@ -156,8 +156,8 @@ export function StudentDetailsModal({
           >
             <Camera className="mr-2 h-5 w-5" />
             {student.link_image
-              ? "Capturar Nova Foto"
-              : "Tirar Foto do Estudante"}
+              ? "Capturar Nova Foto (Demo)"
+              : "Tirar Foto do Estudante (Demo)"}
           </Button>
         </div>
       </div>
