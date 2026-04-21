@@ -34,6 +34,16 @@ function getLimit(): number | null {
   return parsed;
 }
 
+function getTargetRegistrations(): string[] {
+  const raw = process.env.DEMO_IMAGES_REGISTRATIONS;
+  if (!raw) return [];
+
+  return raw
+    .split(",")
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0);
+}
+
 function buildAvatarUrl(student: StudentRow): string {
   const seed = encodeURIComponent(student.registration);
   const radius = 50;
@@ -81,11 +91,20 @@ async function seedOne(student: StudentRow): Promise<void> {
 
 async function main() {
   const limit = getLimit();
+  const targetRegistrations = getTargetRegistrations();
+
+  const whereClause = targetRegistrations.length
+    ? {
+        registration: {
+          in: targetRegistrations,
+        },
+      }
+    : {
+        userTakePhoto: null,
+      };
 
   const students = await prisma.student.findMany({
-    where: {
-      userTakePhoto: null,
-    },
+    where: whereClause,
     select: {
       registration: true,
       name: true,
@@ -97,11 +116,21 @@ async function main() {
   });
 
   if (students.length === 0) {
-    console.log("No students without photo marker were found.");
+    if (targetRegistrations.length > 0) {
+      console.log("No students were found for DEMO_IMAGES_REGISTRATIONS.");
+    } else {
+      console.log("No students without photo marker were found.");
+    }
     return;
   }
 
-  console.log(`Starting demo image seed for ${students.length} students...`);
+  if (targetRegistrations.length > 0) {
+    console.log(
+      `Starting targeted demo image seed for ${students.length} students...`,
+    );
+  } else {
+    console.log(`Starting demo image seed for ${students.length} students...`);
+  }
 
   let successCount = 0;
   let failureCount = 0;

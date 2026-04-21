@@ -16,6 +16,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AlertCircle, Loader2, Lock, Mail } from "lucide-react";
 
+const DEMO_EMAIL = "demo@escola.com";
+const DEMO_PASSWORD = "demo123";
+
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message;
@@ -87,6 +90,20 @@ export function LoginForm({
         <CardContent className="px-8 pb-8">
           <form onSubmit={handleLogin}>
             <div className="flex flex-col gap-5">
+              <div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3 text-sm text-slate-700">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-700">
+                  Acesso demo
+                </p>
+                <div className="mt-2 space-y-1">
+                  <p>
+                    <span className="font-semibold">Login:</span> {DEMO_EMAIL}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Senha:</span> {DEMO_PASSWORD}
+                  </p>
+                </div>
+              </div>
+
               <div className="grid gap-2">
                 <Label
                   htmlFor="email"
@@ -99,7 +116,7 @@ export function LoginForm({
                   <Input
                     id="email"
                     type="email"
-                    placeholder="gestor@sesi.com.br"
+                    placeholder="gestor@escola.com"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
