@@ -29,14 +29,11 @@ export async function POST(
 
   const registration = parsedParams.data.registration;
 
-  await prisma.student.update({
-    where: {
-      registration,
-    },
-    data: {
-      userTakePhoto: user.email,
-    },
-  });
+  await prisma.$executeRaw`
+    UPDATE "student"
+    SET "user_take_photo" = ${user.email}
+    WHERE "registration" = ${registration}
+  `;
 
   const imageUrl = await resolveStudentImageUrl(registration);
 
