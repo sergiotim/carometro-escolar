@@ -473,6 +473,7 @@ export async function POST(request: Request) {
         schoolClass: {
           select: {
             name: true,
+            shift: true,
           },
         },
       },
@@ -485,7 +486,7 @@ export async function POST(request: Request) {
       matricula: student.registration,
       nome: student.name,
       turma: student.schoolClass.name,
-      turno: getShiftLabel(student.shift),
+      turno: getShiftLabel(student.schoolClass.shift),
     }));
 
     if (students.length === 0) {

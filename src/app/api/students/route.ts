@@ -28,6 +28,7 @@ export async function GET() {
           select: {
             classCode: true,
             name: true,
+            shift: true,
           },
         },
       },
@@ -42,7 +43,7 @@ export async function GET() {
         nome: student.name,
         turma: student.schoolClass.classCode,
         turmaNome: student.schoolClass.name,
-        turno: getShiftLabel(student.shift),
+        turno: getShiftLabel(student.schoolClass.shift),
         link_image: await resolveStudentImageUrl(student.registration),
         userTakePhoto: null,
       })),

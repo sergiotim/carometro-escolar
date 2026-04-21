@@ -14,6 +14,7 @@ enum Shift {
 model SchoolClass {
   classCode String    @id @map("class_code")
   name      String
+  shift     Shift
   students  Student[]
 
   @@index([name])
@@ -24,7 +25,6 @@ model Student {
   registration String     @id
   name         String
   classCode    String     @map("class_code")
-  shift        Shift
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
   schoolClass  SchoolClass @relation(fields: [classCode], references: [classCode], onDelete: Restrict, onUpdate: Cascade)
