@@ -42,19 +42,24 @@ export function LoginForm({
     setError(null);
 
     try {
+      const payload = {
+        email: email.trim(),
+        password,
+      };
+
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as
+        const responsePayload = (await response.json().catch(() => null)) as
           | { error?: string }
           | null;
-        throw new Error(payload?.error || "E-mail ou senha incorretos.");
+        throw new Error(responsePayload?.error || "E-mail ou senha incorretos.");
       }
 
       router.push("/");

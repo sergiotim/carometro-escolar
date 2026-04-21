@@ -12,24 +12,23 @@ Este projeto e somente DEMO.
 
 As rotas de upload da API retornam bloqueio permanente para evitar qualquer escrita real em storage ou banco, mesmo com chamada manual.
 
+## Politica de dados
+
+Este repositorio nao utiliza seed automatica.
+
+- Nao existe `prisma db seed` configurado.
+- Nao existe script de seed no fluxo oficial de desenvolvimento/deploy.
+- O ambiente demo utiliza credenciais publicas para facilitar o acesso.
+
 ## Requisitos
 
 - Node.js 20+
 - NPM
 - Banco configurado para leitura da lista de estudantes
 
-## Executar localmente
-
-```bash
-npm install
-npm run dev
-```
-
-Aplicacao em `http://localhost:3000`.
-
 ## Variaveis de ambiente
 
-Use `.env.local` com base em `.env.example` para sessao, banco e chaves ja utilizadas pelo projeto.
+Configure `.env.local` para sessao, banco e chaves ja utilizadas pelo projeto.
 
 Importante: o comportamento demo nao depende de flag em `.env`; ele e permanente por regra de produto.
 
@@ -50,3 +49,4 @@ Checklist recomendado:
 2. Validar captura de foto local (sem persistencia apos refresh).
 3. Validar que endpoints de upload retornam bloqueio (403).
 4. Validar `npm run lint` sem erros.
+5. Validar `npm run build` sem erros.
