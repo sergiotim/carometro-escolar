@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getAuthenticatedUser } from "@/lib/auth/dal";
+import { prisma } from "@/lib/prisma";
 import { resolveStudentImageUrl, uploadStudentImage } from "@/lib/r2";
 
 const paramsSchema = z.object({
@@ -42,6 +43,15 @@ export async function POST(
   try {
     const imageArrayBuffer = await image.arrayBuffer();
     await uploadStudentImage(registration, new Uint8Array(imageArrayBuffer));
+
+    await prisma.student.update({
+      where: {
+        registration,
+      },
+      data: {
+        userTakePhoto: user.email,
+      },
+    });
 
     const imageUrl = await resolveStudentImageUrl(registration);
 

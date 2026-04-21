@@ -38,15 +38,21 @@ export async function GET() {
     });
 
     const payload = await Promise.all(
-      students.map(async (student) => ({
-        matricula: student.registration,
-        nome: student.name,
-        turma: student.schoolClass.classCode,
-        turmaNome: student.schoolClass.name,
-        turno: getShiftLabel(student.schoolClass.shift),
-        link_image: await resolveStudentImageUrl(student.registration),
-        userTakePhoto: null,
-      })),
+      students.map(async (student) => {
+        const linkImage = student.userTakePhoto
+          ? await resolveStudentImageUrl(student.registration)
+          : null;
+
+        return {
+          matricula: student.registration,
+          nome: student.name,
+          turma: student.schoolClass.classCode,
+          turmaNome: student.schoolClass.name,
+          turno: getShiftLabel(student.schoolClass.shift),
+          link_image: linkImage,
+          userTakePhoto: student.userTakePhoto,
+        };
+      }),
     );
 
     return NextResponse.json({ students: payload });

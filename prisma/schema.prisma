@@ -25,6 +25,7 @@ model Student {
   registration String     @id
   name         String
   classCode    String     @map("class_code")
+  userTakePhoto String?   @map("user_take_photo")
   createdAt    DateTime   @default(now()) @map("created_at")
   updatedAt    DateTime   @updatedAt @map("updated_at")
   schoolClass  SchoolClass @relation(fields: [classCode], references: [classCode], onDelete: Restrict, onUpdate: Cascade)
