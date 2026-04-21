@@ -28,6 +28,7 @@ export function UserCard({ student, onClick }: UserCardProps) {
             alt={`Foto de ${student.nome}`}
             fill
             className="object-cover"
+            unoptimized={true}
             onError={() => setImageError(true)}
           />
         ) : (
